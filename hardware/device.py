@@ -56,7 +56,7 @@ class Device(Loggable):
         if not self._simulation:
             self._communicator.ask(msg)
         else:
-            self.debug(f'no handle. {msg}')
+            self.debug(f"no handle. {msg}")
 
     def _load_communicator(self, cfg):
         comms = cfg.get("communications")
@@ -81,7 +81,7 @@ class StreamableDevice(Device):
         self._buffer = []
         root = os.path.join(paths.STREAMS, self.name)
         paths.r_mkdir(root)
-        self.stream_path, _cnt = paths.unique_path(root, 'stream')
+        self.stream_path, _cnt = paths.unique_path(root, "stream")
         self._stream_timer = Timer(self.period, self._stream)
 
     def stop_stream(self):
@@ -98,21 +98,19 @@ class StreamableDevice(Device):
 
         x = time.time() - self._stream_start_time
         self._save_stream(x, stream)
-        xs = hstack(
-            (xs[-self.stream_window:], [x])
-        )
-        ys = hstack((ys[-self.stream_window:], [stream]))
+        xs = hstack((xs[-self.stream_window :], [x]))
+        ys = hstack((ys[-self.stream_window :], [stream]))
         self.plot.data.set_data(xname, xs)
         self.plot.data.set_data(yname, ys)
 
     def _save_stream(self, x, y):
-        delimiter = ','
+        delimiter = ","
         if self._buffer:
             if len(self._buffer) == 10:
-                with open(self.stream_path, 'a') as wfile:
+                with open(self.stream_path, "a") as wfile:
                     for b in self._buffer:
                         row = delimiter.join(b)
-                        line = f'{row}\n'
+                        line = f"{row}\n"
                         wfile.write(line)
                 self._buffer = []
                 return
@@ -121,5 +119,6 @@ class StreamableDevice(Device):
 
     def read_stream(self):
         raise NotImplementedError
+
 
 # ============= EOF =============================================

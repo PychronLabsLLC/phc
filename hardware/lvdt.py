@@ -31,8 +31,11 @@ class MTH100(LVDT):
             v = self._communicator.ask()
         else:
             t = time.time() - self._stream_start_time
-            v = self._cfg.get('amplitude', 1) * math.sin(self._cfg.get('frequency', 1) * t)
+            v = self._cfg.get("amplitude", 1) * math.sin(
+                self._cfg.get("frequency", 1) * t
+            )
 
         return v
+
 
 # ============= EOF =============================================

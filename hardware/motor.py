@@ -20,7 +20,7 @@ from hardware.device import StreamableDevice
 
 class Motor(StreamableDevice):
     def set_position(self, pos, block=True):
-        self.ask(f'MoveTo {pos}')
+        self.ask(f"MoveTo {pos}")
         self._software_position = pos
         if block:
             self.block()
@@ -36,7 +36,7 @@ class Motor(StreamableDevice):
                 cnt = 0
 
     def get_hardware_position(self):
-        return self.ask(f'GetPosition')
+        return self.ask(f"GetPosition")
 
     def get_software_position(self):
         return self._software_position
@@ -54,10 +54,12 @@ class LinearDriver(Motor):
 
     def get_hardware_position(self):
         r = super(LinearDriver, self).get_hardware_position()
-        return (r - self.min_value) / (self.max_value - self.min_value) * self.max_index + self.min_index
+        return (r - self.min_value) / (
+            self.max_value - self.min_value
+        ) * self.max_index + self.min_index
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     l = LinearDriver()
     print(l.get_hardware_position())
 # ============= EOF =============================================
