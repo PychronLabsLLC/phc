@@ -21,7 +21,7 @@ from traits.api import HasTraits
 class Loggable(HasTraits):
     def __init__(self, *args, **kw):
         super(Loggable, self).__init__(*args, **kw)
-        if hasattr(self, 'name'):
+        if hasattr(self, "name"):
             logger = logging.getLogger(self.name)
         else:
             logger = logging.getLogger(self.__class__.__name__)
@@ -43,5 +43,6 @@ class Loggable(HasTraits):
 
     def debug(self, msg):
         self.logger.debug(msg)
+
 
 # ============= EOF =============================================

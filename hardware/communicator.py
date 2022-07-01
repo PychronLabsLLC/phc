@@ -30,20 +30,22 @@ class SerialCommunicator(Communicator):
     def init(self, cfg):
         self._report_cfg(cfg)
         try:
-            self._handle = serial.Serial(port=cfg['port'], timeout=cfg.get('timeout', 1))
+            self._handle = serial.Serial(
+                port=cfg["port"], timeout=cfg.get("timeout", 1)
+            )
         except SerialException:
             self.warning(f'no serial port: {cfg["port"]}')
 
     def _report_cfg(self, cfg):
-        self.debug('#-------------------------------')
+        self.debug("#-------------------------------")
         for k, v in cfg.items():
-            self.debug(f'{k}:   {v}')
-        self.debug('#-------------------------------')
-
+            self.debug(f"{k}:   {v}")
+        self.debug("#-------------------------------")
 
     def ask(self, msg):
         payload = msg
         self._handle.write(payload)
         resp = self._handle.readline()
+
 
 # ============= EOF =============================================

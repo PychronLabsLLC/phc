@@ -15,6 +15,7 @@
 # ===============================================================================
 import os
 import time
+
 # from threading import Thread
 import pyface
 from pyface.qt.QtCore import QThread
@@ -22,6 +23,7 @@ from pyface.qt.QtCore import QThread
 import paths
 from loggable import Loggable
 from traits.api import Dict
+
 
 class StreamThread(QThread):
     def __init__(self, func, *args, **kw):
@@ -63,15 +65,17 @@ class Script(Loggable):
         self._thread.start()
 
     def _get_context(self):
-        ctx = {'info': self.info,
-               'get_device': self.get_device,
-               'stream_device': self.stream_device,
-               'sleep': self.sleep}
+        ctx = {
+            "info": self.info,
+            "get_device": self.get_device,
+            "stream_device": self.stream_device,
+            "sleep": self.sleep,
+        }
         return ctx
 
     def _execute(self):
-        p = os.path.join(paths.SCRIPTS, f'{self.name}.py')
-        with open(p, 'r') as rfile:
+        p = os.path.join(paths.SCRIPTS, f"{self.name}.py")
+        with open(p, "r") as rfile:
             self._text = rfile.read()
         self._execute_snippet(self._text)
 
@@ -105,4 +109,6 @@ class Script(Loggable):
             )
         except Exception as e:
             exc = self.debug_exception()
+
+
 # ============= EOF =============================================

@@ -26,4 +26,6 @@ class LVDT(StreamableDevice):
 class MTH100(LVDT):
     def read_stream(self):
         return random()
+
+
 # ============= EOF =============================================

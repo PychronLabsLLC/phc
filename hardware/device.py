@@ -34,31 +34,32 @@ class Device(Loggable):
     def bootstrap(self):
         p = self._config_path
         if os.path.isfile(p):
-            with open(p, 'r') as rfile:
+            with open(p, "r") as rfile:
                 cfg = yaml.load(rfile, Loader=yaml.SafeLoader)
                 self._cfg = cfg
                 self._load_communicator(cfg)
         else:
-            self.warning(f'No config path. {p}')
+            self.warning(f"No config path. {p}")
 
-    def get_configuration(self, cfgpath, default=''):
+    def get_configuration(self, cfgpath, default=""):
         obj = self._cfg
-        for p in cfgpath.split('.'):
+        for p in cfgpath.split("."):
             if obj:
                 obj = obj.get(p)
 
         return obj or default
 
     def _load_communicator(self, cfg):
-        comms = cfg.get('communications')
+        comms = cfg.get("communications")
         if comms:
-            kind = comms.get('kind', 'serial')
-            if streq(kind, 'serial'):
+            kind = comms.get("kind", "serial")
+            if streq(kind, "serial"):
                 self._communicator = SerialCommunicator()
                 self._communicator.init(comms)
+
     @property
     def _config_path(self):
-        return os.path.join(paths.DEVICES, f'{self.name}.yaml')
+        return os.path.join(paths.DEVICES, f"{self.name}.yaml")
 
 
 class StreamableDevice(Device):
@@ -76,16 +77,20 @@ class StreamableDevice(Device):
     def _stream(self):
         stream = self.read_stream()
 
-        xname = '{}.x'.format(self.name)
-        yname = '{}.y'.format(self.name)
+        xname = "{}.x".format(self.name)
+        yname = "{}.y".format(self.name)
         xs = self.plot.data.get_data(xname)
         ys = self.plot.data.get_data(yname)
 
-        xs = hstack((xs[-self.stream_window:], [time.time()-self._stream_start_time]))
-        ys = hstack((ys[-self.stream_window:], [stream]))
+        xs = hstack(
+            (xs[-self.stream_window :], [time.time() - self._stream_start_time])
+        )
+        ys = hstack((ys[-self.stream_window :], [stream]))
         self.plot.data.set_data(xname, xs)
         self.plot.data.set_data(yname, ys)
 
     def read_stream(self):
         raise NotImplementedError
+
+
 # ============= EOF =============================================

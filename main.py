@@ -21,6 +21,7 @@ import shutil
 from logging.handlers import RotatingFileHandler
 import yaml
 from chaco.array_plot_data import ArrayPlotData
+
 # from chaco.base_plot_container import BasePlotContainer
 from chaco.plot import Plot
 from chaco.plot_containers import GridPlotContainer, HPlotContainer, VPlotContainer
@@ -44,12 +45,13 @@ class GraphArea(Loggable):
     def add_dev_plot(self, dev):
         comp = self.component
 
-        kw = {'{}.x'.format(dev.name): [],
-              '{}.y'.format(dev.name): []}
-        plot = Plot(data=ArrayPlotData(**kw), title=dev.name, padding=60, border_visible=True)
-        plot.plot(('{}.x'.format(dev.name), '{}.y'.format(dev.name)))
-        plot.x_axis.title = 'Time (s)'
-        plot.y_axis.title = dev.get_configuration('graph.yaxis.title.text')
+        kw = {"{}.x".format(dev.name): [], "{}.y".format(dev.name): []}
+        plot = Plot(
+            data=ArrayPlotData(**kw), title=dev.name, padding=60, border_visible=True
+        )
+        plot.plot(("{}.x".format(dev.name), "{}.y".format(dev.name)))
+        plot.x_axis.title = "Time (s)"
+        plot.y_axis.title = dev.get_configuration("graph.yaxis.title.text")
         comp.add(plot)
         dev.plot = plot
 
@@ -57,7 +59,7 @@ class GraphArea(Loggable):
         return VPlotContainer()
 
     def traits_view(self):
-        return View(UItem('component', editor=ComponentEditor(size=(500,500))))
+        return View(UItem("component", editor=ComponentEditor(size=(500, 500))))
 
 
 class MainWindow(Loggable):
@@ -74,23 +76,22 @@ class MainWindow(Loggable):
         load each component
         :return:
         """
-        with open(paths.INITIALIZATION, 'r') as wfile:
+        with open(paths.INITIALIZATION, "r") as wfile:
             init = yaml.load(wfile, Loader=yaml.SafeLoader)
-            devs = init.get('devices')
+            devs = init.get("devices")
             if not devs:
-                self.debug('no devices')
+                self.debug("no devices")
             else:
-                for device_config in init.get('devices', []):
-                    self.debug('loading device {}'.format(device_config))
-                    if device_config.get('enabled', True):
+                for device_config in init.get("devices", []):
+                    self.debug("loading device {}".format(device_config))
+                    if device_config.get("enabled", True):
                         dev = self.create_device(device_config)
                         self.register_device(dev)
 
     def create_device(self, cfg):
-        kind = cfg.get('kind')
+        kind = cfg.get("kind")
         klass = HARDWARE.get(kind)
-        dev = klass(name=cfg.get('name'),
-                    configuration=cfg)
+        dev = klass(name=cfg.get("name"), configuration=cfg)
         dev.bootstrap()
         return dev
 
@@ -105,8 +106,7 @@ class MainWindow(Loggable):
         self.graph_area.add_dev_plot(dev)
 
     def _do_script_button_fired(self):
-        s = Script(name='demo',
-                   devices=self._devices)
+        s = Script(name="demo", devices=self._devices)
         s.application = self
         s.execute()
 
@@ -120,12 +120,13 @@ class MainWindow(Loggable):
 
     def traits_view(self):
         v = View(
-            UItem('start_all_button'),
-            UItem('stop_all_button'),
-            UItem('do_script_button'),
-            UItem('graph_area', style='custom'),
+            UItem("start_all_button"),
+            UItem("stop_all_button"),
+            UItem("do_script_button"),
+            UItem("graph_area", style="custom"),
             resizable=True,
-            title='PFM')
+            title="PFM",
+        )
         return v
 
 
@@ -159,7 +160,9 @@ def setup_logging():
     rhandler = RotatingFileHandler(logpath, maxBytes=1e8, backupCount=50)
     handlers.append(rhandler)
 
-    fmt = logging.Formatter("%(name)-40s: %(asctime)s %(levelname)-9s (%(threadName)-10s) %(message)s")
+    fmt = logging.Formatter(
+        "%(name)-40s: %(asctime)s %(levelname)-9s (%(threadName)-10s) %(message)s"
+    )
     for hi in handlers:
         hi.setLevel(logging.DEBUG)
         hi.setFormatter(fmt)
@@ -176,6 +179,6 @@ def launch():
     mw.configure_traits()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     launch()
 # ============= EOF =============================================
