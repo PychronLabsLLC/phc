@@ -1,0 +1,4 @@
+pyserial
+chaco
+pyyaml
+pyqt5

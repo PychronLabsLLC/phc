@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ===============================================================================
+import glob
 import os
 import time
 from threading import Thread, Event
@@ -30,6 +31,8 @@ from strutil import streq
 
 class Device(Loggable):
     _stream_thread = None
+    _communicator = None
+    _simulation = True
 
     def bootstrap(self):
         p = self._config_path
@@ -49,13 +52,20 @@ class Device(Loggable):
 
         return obj or default
 
+    def ask(self, msg):
+        if not self._simulation:
+            self._communicator.ask(msg)
+        else:
+            self.debug(f'no handle. {msg}')
+
     def _load_communicator(self, cfg):
         comms = cfg.get("communications")
         if comms:
             kind = comms.get("kind", "serial")
             if streq(kind, "serial"):
                 self._communicator = SerialCommunicator()
-                self._communicator.init(comms)
+                if self._communicator.init(comms):
+                    self._simulation = False
 
     @property
     def _config_path(self):
@@ -63,11 +73,15 @@ class Device(Loggable):
 
 
 class StreamableDevice(Device):
-    period = Float(200)
+    period = Float(150)
     stream_window = Int(25)
 
     def start_stream(self):
         self._stream_start_time = time.time()
+        self._buffer = []
+        root = os.path.join(paths.STREAMS, self.name)
+        paths.r_mkdir(root)
+        self.stream_path, _cnt = paths.unique_path(root, 'stream')
         self._stream_timer = Timer(self.period, self._stream)
 
     def stop_stream(self):
@@ -82,15 +96,30 @@ class StreamableDevice(Device):
         xs = self.plot.data.get_data(xname)
         ys = self.plot.data.get_data(yname)
 
+        x = time.time() - self._stream_start_time
+        self._save_stream(x, stream)
         xs = hstack(
-            (xs[-self.stream_window :], [time.time() - self._stream_start_time])
+            (xs[-self.stream_window:], [x])
         )
-        ys = hstack((ys[-self.stream_window :], [stream]))
+        ys = hstack((ys[-self.stream_window:], [stream]))
         self.plot.data.set_data(xname, xs)
         self.plot.data.set_data(yname, ys)
 
+    def _save_stream(self, x, y):
+        delimiter = ','
+        if self._buffer:
+            if len(self._buffer) == 10:
+                with open(self.stream_path, 'a') as wfile:
+                    for b in self._buffer:
+                        row = delimiter.join(b)
+                        line = f'{row}\n'
+                        wfile.write(line)
+                self._buffer = []
+                return
+
+        self._buffer.append((str(x), str(y)))
+
     def read_stream(self):
         raise NotImplementedError
-
 
 # ============= EOF =============================================

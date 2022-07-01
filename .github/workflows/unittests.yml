@@ -32,7 +32,7 @@ jobs:
           edm-version: 3.1.1
       - name: Install EDM dependencies
         run: >
-          edm install -y chaco pyserial
+          edm install -y chaco pyserial pyyaml
 #      - name: Install PIP dependencies
 #        run: >
 #          ~/.edm/envs/edm/bin/python -m pip install --no-dependencies uncertainties qimage2ndarray peakutils

@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ===============================================================================
+import math
+import time
 from random import random
-
+from traits.api import Float
 from hardware.device import Device, StreamableDevice
 from loggable import Loggable
 
@@ -25,7 +27,12 @@ class LVDT(StreamableDevice):
 
 class MTH100(LVDT):
     def read_stream(self):
-        return random()
+        if not self._simulation:
+            v = self._communicator.ask()
+        else:
+            t = time.time() - self._stream_start_time
+            v = self._cfg.get('amplitude', 1) * math.sin(self._cfg.get('frequency', 1) * t)
 
+        return v
 
 # ============= EOF =============================================

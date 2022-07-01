@@ -33,6 +33,8 @@ class SerialCommunicator(Communicator):
             self._handle = serial.Serial(
                 port=cfg["port"], timeout=cfg.get("timeout", 1)
             )
+
+            return True
         except SerialException:
             self.warning(f'no serial port: {cfg["port"]}')
 

@@ -28,8 +28,8 @@ from chaco.plot_containers import GridPlotContainer, HPlotContainer, VPlotContai
 from chaco.plots.lineplot import LinePlot
 from enable.api import ComponentEditor
 from enable.container import Container
-from traitsui.api import View, UItem
-from traits.api import Instance, Any, Dict, Button
+from traitsui.api import View, UItem, Item
+from traits.api import Instance, Any, Dict, Button, Float, observe
 
 import paths
 from loggable import Loggable
@@ -91,8 +91,13 @@ class MainWindow(Loggable):
     def create_device(self, cfg):
         kind = cfg.get("kind")
         klass = HARDWARE.get(kind)
-        dev = klass(name=cfg.get("name"), configuration=cfg)
-        dev.bootstrap()
+        if klass is None:
+            dev = None
+            self.warning(f"No 'kind' specified in initalization.xml for {cfg['name']}")
+        else:
+            dev = klass(name=cfg.get("name"), configuration=cfg)
+            dev.bootstrap()
+
         return dev
 
     def get_device(self, name):
@@ -125,7 +130,7 @@ class MainWindow(Loggable):
             UItem("do_script_button"),
             UItem("graph_area", style="custom"),
             resizable=True,
-            title="PFM",
+            title="PHC",
         )
         return v
 
@@ -141,7 +146,7 @@ def setup_logging():
     root.setLevel(logging.DEBUG)
     shandler = logging.StreamHandler()
 
-    logname = "pfm.log"
+    logname = "phc.log"
     logpath = os.path.join(paths.LOGS, logname)
 
     if os.path.isfile(logpath):
