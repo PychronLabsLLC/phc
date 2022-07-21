@@ -15,12 +15,21 @@
 # ===============================================================================
 from hardware.pump_controller import PumpController
 from main import Application, launch
-from traits.api import Instance
+from traits.api import Instance, Button
 from traitsui.api import VGroup, HGroup, UItem, Item, View
 
 
 class PRRCLab(Application):
     pump_controller = Instance(PumpController)
+
+    loadcell_button = Button('Load Cell')
+    unloadcell_button = Button('Unload Cell')
+
+    def _loadcell_button_fired(self):
+        self.debug('loading cell')
+
+    def _unloadcell_button_fired(self):
+        self.debug('unloading cell')
 
     def _register_device_hook(self, dev):
         if isinstance(dev, PumpController):
@@ -33,12 +42,15 @@ class PRRCLab(Application):
                          show_border=True, label='Scripts')
         pumps = VGroup(UItem('pump_controller', style='custom'),
                        show_border=True, label='Pump')
-        controls = VGroup(scripts, pumps)
+        actions = VGroup(UItem('loadcell_button'),
+                         UItem('unloadcell_button'),
+                         show_border=True, label='Actions')
+        controls = VGroup(scripts, pumps, actions)
         graph = VGroup(UItem('graph_area', style='custom'), )
         grp = HGroup(controls, graph)
         v = View(grp,
                  resizable=True,
-                 title='PFM')
+                 title='PRRC Lab')
         return v
 
 
