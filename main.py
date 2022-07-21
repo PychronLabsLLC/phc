@@ -31,10 +31,12 @@ from traitsui.api import View, UItem
 from traits.api import Instance, Any, Dict, Button
 
 import paths
+from hardware.device import StreamableDevice
 from loggable import Loggable
 
 from hardware import HARDWARE
 from script import Script
+from state import StateController
 
 
 class GraphArea(Loggable):
@@ -44,10 +46,11 @@ class GraphArea(Loggable):
     def add_dev_plot(self, dev):
         comp = self.component
 
-        kw = {'{}.x'.format(dev.name): [],
-              '{}.y'.format(dev.name): []}
+        kw, xname, ynames = dev.make_plotnames()
         plot = Plot(data=ArrayPlotData(**kw), title=dev.name, padding=60, border_visible=True)
-        plot.plot(('{}.x'.format(dev.name), '{}.y'.format(dev.name)))
+        for yi in ynames:
+            plot.plot((xname, yi))
+
         plot.x_axis.title = 'Time (s)'
         plot.y_axis.title = dev.get_configuration('graph.yaxis.title.text')
         comp.add(plot)
@@ -67,6 +70,7 @@ class MainWindow(Loggable):
     start_all_button = Button
     stop_all_button = Button
     do_script_button = Button
+    state_controller = Instance(StateController, ())
 
     def initialize(self):
         """
@@ -74,6 +78,8 @@ class MainWindow(Loggable):
         load each component
         :return:
         """
+        self.state_controller.run()
+
         with open(paths.INITIALIZATION, 'r') as wfile:
             init = yaml.load(wfile, Loader=yaml.SafeLoader)
             devs = init.get('devices')
@@ -102,7 +108,8 @@ class MainWindow(Loggable):
         # add device to registry
         self._devices[dev.name] = dev
         # add plot to graph_area
-        self.graph_area.add_dev_plot(dev)
+        if isinstance(dev, StreamableDevice):
+            self.graph_area.add_dev_plot(dev)
 
     def _do_script_button_fired(self):
         s = Script(name='demo',
@@ -112,11 +119,13 @@ class MainWindow(Loggable):
 
     def _start_all_button_fired(self):
         for d in self._devices.values():
-            d.start_stream()
+            if isinstance(d, StreamableDevice):
+                d.start_stream()
 
     def _stop_all_button_fired(self):
         for d in self._devices.values():
-            d.stop_stream()
+            if isinstance(d, StreamableDevice):
+                d.stop_stream()
 
     def traits_view(self):
         v = View(

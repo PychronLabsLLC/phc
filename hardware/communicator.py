@@ -40,10 +40,11 @@ class SerialCommunicator(Communicator):
             self.debug(f'{k}:   {v}')
         self.debug('#-------------------------------')
 
-
     def ask(self, msg):
         payload = msg
-        self._handle.write(payload)
-        resp = self._handle.readline()
-
+        if self._handle:
+            self._handle.write(payload)
+            resp = self._handle.readline()
+        else:
+            self.debug(f'no handle: msg={msg}')
 # ============= EOF =============================================

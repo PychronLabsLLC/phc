@@ -13,11 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ===============================================================================
-from .heisest2h import HeiseST2H
-from .lvdt import MTH100
-from .pump_controller import ISCOPumpController
+from random import random
 
-HARDWARE = {'MTH100': MTH100,
-            'ISCOPumpController': ISCOPumpController,
-            'HeiseST2H': HeiseST2H}
+from hardware.device import Device, StreamableDevice
+
+
+class HeiseST2H(StreamableDevice):
+    def read_stream(self):
+        l, r = self.read()
+        return [{'name': 'left', 'value': l},
+                {'name': 'right', 'value': r}]
+
+    def read(self):
+        resp = self.ask('?')
+        if resp:
+            resp = resp[1:]
+            left, right = resp.split(',')
+        elif self.simulation:
+            left, right = random(), random()
+
+        return float(left), float(right)
+
+    def zero(self, left=False, right=False):
+        self.ask(f'ZERO_{int(left)},_{int(right)}')
+
 # ============= EOF =============================================

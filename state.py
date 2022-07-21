@@ -13,11 +13,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ===============================================================================
-from .heisest2h import HeiseST2H
-from .lvdt import MTH100
-from .pump_controller import ISCOPumpController
+import json
+from threading import Thread
+import time
 
-HARDWARE = {'MTH100': MTH100,
-            'ISCOPumpController': ISCOPumpController,
-            'HeiseST2H': HeiseST2H}
+from loggable import Loggable
+
+
+class Stateful(Loggable):
+    def dump(self):
+        return
+
+    def load(self):
+        pass
+
+
+class StateController(Loggable):
+    period = 10
+
+    def run(self):
+        t = Thread(target=self._run)
+        t.setDaemon(True)
+        t.start()
+        self._run_thread = t
+
+    def _run(self):
+        while 1:
+            time.sleep(self.period)
+
+    def dump(self):
+        self.debug('dump state')
+        state = {}
+        for obj in self.statefuls:
+            state[obj.key] = obj.dump()
+
+        with open(self._state_path, 'w') as wfile:
+            json.dump(wfile, obj)
+
+    def load(self):
+        self.debug('dump state')
+
 # ============= EOF =============================================

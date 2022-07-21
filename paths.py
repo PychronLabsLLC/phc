@@ -15,7 +15,7 @@
 # ===============================================================================
 import os.path
 
-HOME = os.path.join(os.path.expanduser('~'), 'pfm')
+HOME = os.path.join(os.path.expanduser('~'), 'phc')
 INITIALIZATION = os.path.join(HOME, 'initialization.yaml')
 LOGS = os.path.join(HOME, 'logs')
 SCRIPTS = os.path.join(HOME, 'scripts')

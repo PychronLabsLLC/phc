@@ -30,6 +30,10 @@ from strutil import streq
 
 class Device(Loggable):
     _stream_thread = None
+    simulation = False
+
+    def ask(self, msg):
+        return self._communicator.ask(msg)
 
     def bootstrap(self):
         p = self._config_path
@@ -38,6 +42,8 @@ class Device(Loggable):
                 cfg = yaml.load(rfile, Loader=yaml.SafeLoader)
                 self._cfg = cfg
                 self._load_communicator(cfg)
+
+                self.simulation = self._cfg.get('simulation', False)
         else:
             self.warning(f'No config path. {p}')
 
@@ -75,17 +81,43 @@ class StreamableDevice(Device):
 
     def _stream(self):
         stream = self.read_stream()
-
         xname = '{}.x'.format(self.name)
-        yname = '{}.y'.format(self.name)
         xs = self.plot.data.get_data(xname)
-        ys = self.plot.data.get_data(yname)
 
-        xs = hstack((xs[-self.stream_window:], [time.time()-self._stream_start_time]))
-        ys = hstack((ys[-self.stream_window:], [stream]))
+        if isinstance(stream, list):
+            for si in stream:
+                yname = '{}.{}'.format(self.name, si['name'])
+                ys = self.plot.data.get_data(yname)
+                ys = hstack((ys[-self.stream_window:], si['value']))
+                self.plot.data.set_data(yname, ys)
+        else:
+            yname = '{}.y'.format(self.name)
+            ys = self.plot.data.get_data(yname)
+            ys = hstack((ys[-self.stream_window:], [stream]))
+            self.plot.data.set_data(yname, ys)
+
+        xs = hstack((xs[-self.stream_window:], [time.time() - self._stream_start_time]))
         self.plot.data.set_data(xname, xs)
-        self.plot.data.set_data(yname, ys)
 
     def read_stream(self):
         raise NotImplementedError
+
+    def make_plotnames(self):
+        xname = '{}.x'.format(self.name)
+        kw = {xname: []}
+        ynames = []
+        if self._cfg:
+            if 'graph' in self._cfg:
+                graph = self._cfg['graph']
+                if 'streams' in graph:
+                    for si in graph['streams']:
+                        yname = '{}.{}'.format(self.name, si['name'])
+                        kw[yname] = []
+                        ynames.append(yname)
+                else:
+                    yname = '{}.y'.format(self.name)
+                    kw[yname] = []
+                    ynames.append(yname)
+
+        return kw, xname, ynames
 # ============= EOF =============================================
