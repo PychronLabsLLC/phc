@@ -68,12 +68,12 @@ class Device(Loggable):
 
 
 class StreamableDevice(Device):
-    period = Float(200)
     stream_window = Int(25)
 
     def start_stream(self):
         self._stream_start_time = time.time()
-        self._stream_timer = Timer(self.period, self._stream)
+        periodms = self._cfg.get('period', 0.2)*1000
+        self._stream_timer = Timer(periodms, self._stream)
 
     def stop_stream(self):
         if self._stream_timer:

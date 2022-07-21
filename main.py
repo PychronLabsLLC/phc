@@ -27,11 +27,12 @@ from chaco.plot_containers import GridPlotContainer, HPlotContainer, VPlotContai
 from chaco.plots.lineplot import LinePlot
 from enable.api import ComponentEditor
 from enable.container import Container
-from traitsui.api import View, UItem
+from traitsui.api import View, UItem, VGroup, HGroup
 from traits.api import Instance, Any, Dict, Button
 
 import paths
 from hardware.device import StreamableDevice
+from hardware.pump_controller import PumpController
 from loggable import Loggable
 
 from hardware import HARDWARE
@@ -60,13 +61,14 @@ class GraphArea(Loggable):
         return VPlotContainer()
 
     def traits_view(self):
-        return View(UItem('component', editor=ComponentEditor(size=(500,500))))
+        return View(UItem('component', editor=ComponentEditor(size=(500, 500))))
 
 
-class MainWindow(Loggable):
+class Application(Loggable):
     _initialization = None
     _devices = Dict
     graph_area = Instance(GraphArea, ())
+
     start_all_button = Button
     stop_all_button = Button
     do_script_button = Button
@@ -90,7 +92,8 @@ class MainWindow(Loggable):
                     self.debug('loading device {}'.format(device_config))
                     if device_config.get('enabled', True):
                         dev = self.create_device(device_config)
-                        self.register_device(dev)
+                        if dev:
+                            self.register_device(dev)
 
     def create_device(self, cfg):
         kind = cfg.get('kind')
@@ -111,6 +114,11 @@ class MainWindow(Loggable):
         if isinstance(dev, StreamableDevice):
             self.graph_area.add_dev_plot(dev)
 
+        self._register_device_hook(dev)
+
+    def _register_device_hook(self, dev):
+        pass
+
     def _do_script_button_fired(self):
         s = Script(name='demo',
                    devices=self._devices)
@@ -126,16 +134,6 @@ class MainWindow(Loggable):
         for d in self._devices.values():
             if isinstance(d, StreamableDevice):
                 d.stop_stream()
-
-    def traits_view(self):
-        v = View(
-            UItem('start_all_button'),
-            UItem('stop_all_button'),
-            UItem('do_script_button'),
-            UItem('graph_area', style='custom'),
-            resizable=True,
-            title='PFM')
-        return v
 
 
 def setup_paths():
@@ -175,16 +173,15 @@ def setup_logging():
         root.addHandler(hi)
 
 
-def launch():
+def launch(app):
     setup_paths()
 
     setup_logging()
 
-    mw = MainWindow()
-    mw.initialize()
-    mw.configure_traits()
+    app.initialize()
+    app.configure_traits()
 
 
-if __name__ == '__main__':
-    launch()
+# if __name__ == '__main__':
+#     launch()
 # ============= EOF =============================================

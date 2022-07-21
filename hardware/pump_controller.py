@@ -14,10 +14,23 @@
 # limitations under the License.
 # ===============================================================================
 from hardware.device import Device
+from traits.api import Float, observe
+from traitsui.api import View, UItem, Item
 
 
 class PumpController(Device):
-    pass
+    setpoint = Float(auto_set=False, enter_set=True)
+
+    def traits_view(self):
+        return View(Item('setpoint'))
+
+    @observe('setpoint')
+    def handle_setpoint(self, e):
+        self.debug(f'set setpoint to {self.setpoint}, {e}')
+        self.set_setpoint(self.setpoint)
+
+    def set_setpoint(self, v):
+        self.debug(f'setting setpoint to {v}')
 
 
 class ISCOPumpController(PumpController):
