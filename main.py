@@ -31,8 +31,10 @@ from traitsui.api import View, UItem, VGroup, HGroup
 from traits.api import Instance, Any, Dict, Button
 
 import paths
+from device_poller import DevicePoller
 from hardware.device import StreamableDevice
 from hardware.pump_controller import PumpController
+from stream_writer import StreamWriter
 from loggable import Loggable
 
 from hardware import HARDWARE
@@ -73,6 +75,8 @@ class Application(Loggable):
     stop_all_button = Button
     do_script_button = Button
     state_controller = Instance(StateController, ())
+    stream_writer = Instance(StreamWriter, ())
+    device_poll = Instance(DevicePoller, ())
 
     def initialize(self):
         """
@@ -95,6 +99,8 @@ class Application(Loggable):
                         if dev:
                             self.register_device(dev)
 
+        self.device_poll.run()
+
     def create_device(self, cfg):
         kind = cfg.get('kind')
         klass = HARDWARE.get(kind)
@@ -113,6 +119,8 @@ class Application(Loggable):
         # add plot to graph_area
         if isinstance(dev, StreamableDevice):
             self.graph_area.add_dev_plot(dev)
+            self.stream_writer.register_device(dev)
+            self.device_poll.register_device(dev)
 
         self._register_device_hook(dev)
 

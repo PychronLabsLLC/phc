@@ -19,7 +19,7 @@ from threading import Thread, Event
 
 import yaml
 from pyface.timer.timer import Timer
-from traits.api import Float, Int
+from traits.api import Float, Int, Event as TraitsEvent
 from numpy import hstack
 
 import paths
@@ -69,6 +69,8 @@ class Device(Loggable):
 
 class StreamableDevice(Device):
     stream_window = Int(25)
+    stream_event = TraitsEvent
+
 
     def start_stream(self):
         self._stream_start_time = time.time()
@@ -80,7 +82,7 @@ class StreamableDevice(Device):
             self._stream_timer.Stop()
 
     def _stream(self):
-        stream = self.read_stream()
+        ct, stream = self.poll_stream()
         xname = '{}.x'.format(self.name)
         xs = self.plot.data.get_data(xname)
 
@@ -96,11 +98,17 @@ class StreamableDevice(Device):
             ys = hstack((ys[-self.stream_window:], [stream]))
             self.plot.data.set_data(yname, ys)
 
-        xs = hstack((xs[-self.stream_window:], [time.time() - self._stream_start_time]))
+        xs = hstack((xs[-self.stream_window:], [ct - self._stream_start_time]))
         self.plot.data.set_data(xname, xs)
 
     def read_stream(self):
         raise NotImplementedError
+
+    def poll_stream(self):
+        ct = time.time()
+        stream = self.read_stream()
+        self.stream_event = {"time": ct, "stream": stream}
+        return ct, stream
 
     def make_plotnames(self):
         xname = '{}.x'.format(self.name)

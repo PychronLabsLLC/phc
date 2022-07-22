@@ -13,36 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ===============================================================================
-import logging
-
-from traits.api import HasTraits
+from loggable import Loggable
 
 
-class Loggable(HasTraits):
-    def __init__(self, *args, **kw):
-        super(Loggable, self).__init__(*args, **kw)
-        if hasattr(self, 'name'):
-            logger = logging.getLogger(self.name)
-        else:
-            logger = logging.getLogger(self.__class__.__name__)
+class StreamWriter(Loggable):
+    def register_device(self, dev):
+        dev.observe(self._handle_stream, "stream_event")
 
-        self.logger = logger
-
-    def debug_exception(self):
-        import traceback
-
-        exc = traceback.format_exc()
-        self.debug(exc)
-        return exc
-
-    def warning(self, msg):
-        self.logger.warning(msg)
-
-    def info(self, msg):
-        self.logger.info(msg)
-
-    def debug(self, *args):
-        msg = ' '.join((str(a) for a in args))
-        self.logger.debug(msg)
-
+    def _handle_stream(self, event):
+        self.debug('handle stream event', event)
 # ============= EOF =============================================
